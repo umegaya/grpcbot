@@ -1,0 +1,28 @@
+{
+  "name": "grpcbot",
+  "version": "0.1.0",
+  "description": "easily generate scriptable bot program from grpc protocol definition file",
+  "main": "robot.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/umegaya/grpcbot.git"
+  },
+  "keywords": [
+    "grpc"
+  ],
+  "author": "Takehiro Iyatomi (iyatomi@gmail.com)",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/umegaya/grpcbot/issues"
+  },
+  "homepage": "https://github.com/umegaya/grpcbot#readme",
+  "dependencies": {
+    "any-promise": "^1.3.0",
+    "eval": "^0.1.1",
+    "fibers": "^1.0.14",
+    "grpc": "^1.0.0"
+  }
+}
