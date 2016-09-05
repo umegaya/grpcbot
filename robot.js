@@ -15,7 +15,7 @@ function Robot(script, options) {
 				fs.readFileSync(script, { encoding: 'UTF-8' }) + '\n' + 
 			'}\n' +
 			'client.options.resolve(client, null);\n' + 
-		'} catch (e) { client.options.resolve(client, e); throw e; };\n' + 
+		'} catch (e) { if (client.options.resolve(client, e)) { module.exports(client); } else { throw e; } };\n' +
 		'client.finished = true;' +  
 	'};';
 	//console.log("code = " + code);
@@ -31,10 +31,12 @@ function Robot(script, options) {
 	}
 	var credential;
 	if (options.rootcert) {
-		var crt = fs.readFileSync(options.rootcert);
-		credential = grpc.credentials.createSsl(crt);//, key, chain);
+		if (!Robot.rootcert) {
+			Robot.rootcert = fs.readFileSync(options.rootcert);
+		}
+		credential = grpc.credentials.createSsl(Robot.rootcert);
 	} else {
-		credential = grpc.createInsecure();
+		credential = grpc.credentials.createInsecure();
 	}
 	this.api = new Robot.services[options.API][options.packageName][options.serviceName](options.address, credential);
 	this.fiber = Fiber(_eval(code));
@@ -86,7 +88,7 @@ Robot.prototype.hash = function (type, fmt, payload) {
 
 Robot.prototype.assert = function (cond, msg) {
 	if (!cond) {
-		self.fiber.throwInto(new Error(msg));
+		this.fiber.throwInto(new Error(msg));
 	}
 }
 
