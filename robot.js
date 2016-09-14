@@ -8,6 +8,31 @@ var grpc = require('grpc');
 
 module.exports = Robot;
 
+function setupStream(client) {
+	var streamConfig = client.options.stream;
+	client.stream = client.api[streamConfig.rpcMethod]();
+	client.stream.on('data', function (res) {
+		streamConfig.callbackResolver(client, res);
+	});
+	client.stream.on('error', function (err) {
+		client.log("error on stream:" + err);
+		client.run(err);
+	})
+	client.call = function (method, req) {
+		req = streamConfig.callbackRegister(client, method, req, function (res) {
+			client.run(res);
+		});
+		client.stream.write(req);
+		var r = Fiber.yield();
+		if (r instanceof Error) {
+			setupStream(client);
+			r.code = 14; //indicate retry
+			throw r;
+		}
+		return r;
+	}
+}
+
 function Robot(script, options) {
 	var code = 'module.exports = function (client) {' + 
 		'try {\n' + 
@@ -16,6 +41,7 @@ function Robot(script, options) {
 			'}\n' +
 			'client.options.resolve(client, null);\n' + 
 		'} catch (e) { if (client.options.resolve(client, e)) { module.exports(client); } else { throw e; } };\n' +
+		//'if (client.stream) { client.stream.end(); }\n' + 
 		'client.finished = true;' +  
 	'};';
 	//console.log("code = " + code);
@@ -39,7 +65,7 @@ function Robot(script, options) {
 		credential = grpc.credentials.createInsecure();
 	}
 	this.api = new Robot.services[options.API][options.packageName][options.serviceName](options.address, credential);
-	this.fiber = Fiber(_eval(code));
+	this.fiber = Fiber(_eval(code, true));
 	this.options = options;
 	this.options.resolve = this.options.resolve || function (cl, err) {
 		if (!err) {
@@ -50,6 +76,26 @@ function Robot(script, options) {
 	}
 	this.finished = false;
 	this.userdata = options.userdataFactory ? options.userdataFactory() : {};
+	if (options.stream) {
+		setupStream(this);
+	}
+}
+
+Robot.protobuf = require('protobufjs');
+//extension for handling bytebuffer type 
+Robot.protobuf.ByteBuffer.prototype.slice = 
+function (offset, limit) {
+    offset = offset || this.offset;
+    limit = limit || this.limit;
+    if (offset > limit) {
+        return null;
+    } 
+    var copied = new Uint8Array(limit - offset);
+    for (var i = offset; i < limit; i++) {
+        //console.log("copied:" + (i - offset) + "|" + this.view[i]);
+        copied[i - offset] = this.view[i];
+    }
+    return copied;
 }
 
 Robot.idseed = 1;
