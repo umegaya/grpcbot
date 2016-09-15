@@ -18,11 +18,12 @@ function setupStream(client) {
 		client.log("error on stream:" + err);
 		client.run(err);
 	})
-	client.call = function (method, req) {
+	client.call = function (method, req, extStream) {
+		var stream = extStream || client.stream;
 		req = streamConfig.callbackRegister(client, method, req, function (res) {
 			client.run(res);
 		});
-		client.stream.write(req);
+		stream.write(req);
 		var r = Fiber.yield();
 		if (r instanceof Error) {
 			setupStream(client);
@@ -30,6 +31,17 @@ function setupStream(client) {
 			throw r;
 		}
 		return r;
+	}
+	if (streamConfig.notifyRPCMethod) {
+		client.notifyStream = client.api[streamConfig.notifyRPCMethod]();
+		client.notifyStream.on('data', function (res) {
+			//TODO: routing notifications to somewhere by callback
+			streamConfig.callbackResolver(client, res);
+		});
+		client.notifyStream.on('error', function (err) {
+			client.log("error on stream:" + err);
+			client.run(err);
+		});
 	}
 }
 
@@ -41,7 +53,6 @@ function Robot(script, options) {
 			'}\n' +
 			'client.options.resolve(client, null);\n' + 
 		'} catch (e) { if (client.options.resolve(client, e)) { module.exports(client); } else { throw e; } };\n' +
-		//'if (client.stream) { client.stream.end(); }\n' + 
 		'client.finished = true;' +  
 	'};';
 	//console.log("code = " + code);
