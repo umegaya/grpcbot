@@ -39,8 +39,7 @@ function setupStream(client) {
 			streamConfig.callbackResolver(client, res);
 		});
 		client.notifyStream.on('error', function (err) {
-			client.log("error on stream:" + err);
-			client.run(err);
+			client.log("error on notifyStream:" + err);
 		});
 	}
 }
