@@ -91,7 +91,7 @@ function Robot(script, options) {
 	}
 }
 
-Robot.protobuf = require('protobufjs');
+Robot.protobuf = require('grpc/node_modules/protobufjs');
 //extension for handling bytebuffer type 
 Robot.protobuf.ByteBuffer.prototype.slice = 
 function (offset, limit) {
@@ -106,6 +106,13 @@ function (offset, limit) {
         copied[i - offset] = this.view[i];
     }
     return copied;
+}
+var orgProtoLoader = Robot.protobuf.loadProtoFile;
+Robot.protobuf.loadProtoFile = function(filename, callback, builder) {
+	if (!callback) 
+		return orgProtoLoader(filename, Robot.protoBuilder)
+	else
+		return orgProtoLoader(filaname, callback, Robot.protoBuilder)
 }
 
 Robot.idseed = 1;
