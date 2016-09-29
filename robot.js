@@ -19,8 +19,10 @@ function setupStream(client) {
 		client.run(err);
 	})
 	client.stream.on('end', function (e) {
-		client.log("stream end");
-		client.run(new Error("stream end"));
+		if (!client.finished) {
+			client.log("stream end");
+			client.run(new Error("stream end"));
+		}
 	});
 	client.call = function (method, req, extStream) {
 		var stream = extStream || client.stream;
@@ -46,8 +48,10 @@ function setupStream(client) {
 			client.log("error on notifyStream:" + err);
 		});
 		client.notifyStream.on('end', function (e) {
-			client.log("notifyStream end");
-			client.run(new Error("notifyStream end"));
+			if (!client.finished) {
+				client.log("notifyStream end");
+				client.run(new Error("notifyStream end"));
+			}
 		});
 	}
 }
@@ -58,9 +62,9 @@ function Robot(script, options) {
 			'for (var __count__ = 0; __count__ < ' + (options.loop || 1) + '; __count__++) {\n' + 
 				fs.readFileSync(script, { encoding: 'UTF-8' }) + '\n' + 
 			'}\n' +
+			'client.finished = true;' +  
 			'client.options.resolve(client, null);\n' + 
 		'} catch (e) { if (client.options.resolve(client, e)) { module.exports(client); } else { throw e; } };\n' +
-		'client.finished = true;' +  
 	'};';
 	//console.log("code = " + code);
 	this.id = Robot.idseed++;
