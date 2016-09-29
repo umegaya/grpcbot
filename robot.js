@@ -18,6 +18,10 @@ function setupStream(client) {
 		client.log("error on stream:" + err);
 		client.run(err);
 	})
+	client.stream.on('end', function (e) {
+		client.log("stream end");
+		client.run(new Error("stream end"));
+	});
 	client.call = function (method, req, extStream) {
 		var stream = extStream || client.stream;
 		req = streamConfig.callbackRegister(client, method, req, function (res) {
@@ -40,6 +44,10 @@ function setupStream(client) {
 		});
 		client.notifyStream.on('error', function (err) {
 			client.log("error on notifyStream:" + err);
+		});
+		client.notifyStream.on('end', function (e) {
+			client.log("notifyStream end");
+			client.run(new Error("notifyStream end"));
 		});
 	}
 }
