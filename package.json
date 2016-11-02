@@ -23,10 +23,10 @@
   },
   "homepage": "https://github.com/umegaya/grpcbot#readme",
   "dependencies": {
-    "any-promise": "^1.3.0",
-    "eval": "^0.1.1",
-    "fibers": "^1.0.14",
-    "grpc": "^1.0.0"
+    "any-promise": "https://registry.npmjs.org/any-promise/-/any-promise-1.3.0.tgz",
+    "eval": "https://registry.npmjs.org/eval/-/eval-0.1.1.tgz",
+    "fibers": "https://registry.npmjs.org/fibers/-/fibers-1.0.14.tgz",
+    "grpc": "https://registry.npmjs.org/grpc/-/grpc-1.0.0.tgz"
   },
   "gitHead": "b163d61993190eeeeae0ea968165323643ef0186",
   "readme": "# grpcbot\n- easily generate scriptable bot from grpc protocol definition file\n",
