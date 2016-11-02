@@ -103,7 +103,7 @@ function Robot(script, options) {
 	}
 }
 
-Robot.protobuf = require('grpc/node_modules/protobufjs');
+Robot.protobuf = require('protobufjs');
 //extension for handling bytebuffer type 
 Robot.protobuf.ByteBuffer.prototype.slice = 
 function (offset, limit) {
