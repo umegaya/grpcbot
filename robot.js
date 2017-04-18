@@ -16,7 +16,9 @@ function setupStream(client) {
 	});
 	client.stream.on('error', function (err) {
 		client.log("error on stream:" + err);
-		client.run(err);
+		if (err.code != 1) {
+			client.run(err);
+		}
 	})
 	client.stream.on('end', function (e) {
 		if (!client.finished) {
@@ -48,10 +50,7 @@ function setupStream(client) {
 			client.log("error on notifyStream:" + err);
 		});
 		client.notifyStream.on('end', function (e) {
-			if (!client.finished) {
-				client.log("notifyStream end");
-				client.run(new Error("notifyStream end"));
-			}
+			client.log("notifyStream end");
 		});
 	}
 }
