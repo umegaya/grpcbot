@@ -85,7 +85,11 @@ function Robot(script, options) {
 	} else {
 		credential = grpc.credentials.createInsecure();
 	}
-	this.api = new Robot.services[options.API][options.packageName][options.serviceName](options.address, credential);
+	var address = options.address;
+	if (Array.isArray(address)) {
+		address = options.address[this.randomInt(0,address.length-1)];
+	}
+	this.api = new Robot.services[options.API][options.packageName][options.serviceName](address, credential);
 	this.fiber = Fiber(_eval(code, true));
 	this.options = options;
 	this.options.resolve = this.options.resolve || function (cl, err) {
@@ -154,6 +158,14 @@ Robot.prototype.randomBytes = function (len) {
 	return crypto.randomBytes(len);
 }
 
+Robot.prototype.randomInt = function (min, max) {
+ 	return Math.floor( Math.random() * (max - min + 1) ) + min;
+}
+
+Robot.prototype.random = function (min, max) {
+	return Math.random() * (max - min) + min;
+}
+
 Robot.prototype.hash = function (type, fmt, payload) {
 	var hash = crypto.createHash(type);
     hash.update(payload);
@@ -174,7 +186,7 @@ Robot.prototype.run = function (arg) {
 	try {
 		this.fiber.run(arg || this);
 	} catch (e) {
-		console.warn("run robot error:" + e);
+		console.warn("run robot error:" + e + " at " + e.stack);
 	}
 }
 
@@ -200,4 +212,8 @@ Robot.prototype.sleep = function (msec) {
 		self.run();
 	}, msec);
 	Fiber.yield();
+}
+
+Robot.prototype.exit = function (code) {
+	process.exit(code || 0);
 }
